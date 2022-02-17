@@ -1,0 +1,20 @@
+---
+- name: Upload web page
+  hosts: STAGING_SERVERS_WEB
+  become: yes
+  
+  vars:
+    source    : ./mywebsite/index.html  
+    destination : /var/www/html
+    
+  tasks:
+  - name: Copy site to server`s directory
+    copy: src={{ source }} dest={{ destination }} mode=0555
+    notify: restart
+    
+  - name: Start webServer
+    service: name=httpd state=started enabled=yes
+    
+  handlers:
+  - name: restart
+    service: name=httpd state=restarted   
