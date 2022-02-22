@@ -5,8 +5,18 @@
   become: yes
 
   tasks:
-  - name: Install apache web server
-    yum: name=httpd state=latest
-
-  - name: Start web server
-    service: name=httpd state=started enabled=yes 
+  
+  - block: #RH
+  
+     - name: Install apache web server RH
+       yum: name=httpd state=latest
+    
+    when: ansible_os_family == "RedHat"
+  
+  - block:   # Deb
+  
+      - name: Install apache web server Deb
+        apt: name=apache2 state=latest
+  
+    when: ansible_os_family == "Debian" 
+  

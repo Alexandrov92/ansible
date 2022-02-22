@@ -1,0 +1,101 @@
+
+---
+- name: Install essential packages universally
+  hosts: all
+  become: yes
+
+  tasks:
+  
+  - block: #for RH
+  
+     - name: Install essentials pack
+       dnf: 
+          name:
+            - epel-release  
+            - httpd
+            - tree
+            - git
+          state: latest
+          update_cache: true  
+     #install Docker     
+     - name: Install utils
+       dnf:
+         name: 
+           - yum-utils
+           - device-mapper-persistent-data
+           - lvm2
+         state: latest
+     
+     - name: add Docker repository 
+       get_url:
+          url: https://download.docker.com/linux/centos/docker-ce.repo  
+          dest: /etc/yum.repos.d/docker-ce.repo
+     
+     - name: install Docker
+       package:
+          name: docker-ce
+          state: latest
+          
+     - name: start Docker service
+       service:
+          name: docker
+          state: started
+          enabled: yes
+          
+     - name: add user
+       user:
+         name: root
+         groups: docker
+         append: yes
+    
+    when: ansible_os_family == "RedHat"
+  
+  - block:   # Deb
+  
+      - name: Install essentials pack
+        dnf: 
+          name:
+            - apache2
+            - tree
+            - git
+          state: latest
+          update_cache: true  
+     #install Docker     
+      - name: Install aptitude using apt
+        apt: 
+          name:
+            - aptitude
+          state: latest
+          update_cache: yes
+          force_apt_get: yes
+
+      - name: Install required system packages
+        apt: name={{ item }} state=latest update_cache=yes
+        loop:
+           - "apt-transport-https"
+           - "ca-certificates"
+           - "curl"
+           - "software-properties-common"
+           - "python3-pip"
+           - "virtualenv"
+           - "python3-setuptools"
+
+      - name: Add Docker GPG apt Key
+        apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+      - name: Add Docker Repository
+        apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+
+      - name: Update apt and install docker-ce
+        apt: update_cache=yes name=docker-ce state=latest
+
+      - name: Install Docker Module for Python
+        pip:
+          name: docker
+  
+    when: ansible_os_family == "Debian" 
+  

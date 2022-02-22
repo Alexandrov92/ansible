@@ -7,4 +7,8 @@
   tasks:
 
   - name: Ping my servers
-    ping:
+    ping: 
+    
+  - debug: var=ansible_os_family
+  
+           

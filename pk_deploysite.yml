@@ -8,13 +8,34 @@
     destination : /var/www/html
     
   tasks:
-  - name: Copy site to server`s directory
-    copy: src={{ source }} dest={{ destination }} mode=0555
-    notify: restart
+  
+  - block: #RH
+  
+      - name: Copy site to server`s directory
+        copy: src={{ source }} dest={{ destination }} mode=0555
+        notify: restart Apache RH
     
-  - name: Start webServer
-    service: name=httpd state=started enabled=yes
+      - name: Start webServer service RedHat
+        service: name=httpd state=started enabled=yes
     
+    when: ansible_os_family == "RedHat"
+    
+    
+  - block: #Deb
+  
+      - name: Copy site to server`s directory
+        copy: src={{ source }} dest={{ destination }} mode=0555
+        notify: restart Apache Deb
+    
+      - name: Start webServer service Debian
+        service: name=httpd state=started enabled=yes
+    
+    when: ansible_os_family == "Debian"  
+    
+  
   handlers:
-  - name: restart
-    service: name=httpd state=restarted   
+  - name: restart Apache RH
+    service: name=httpd state=restarted
+       
+  - name: restart Apache Deb
+    service: name=apache2 state=restarted  
