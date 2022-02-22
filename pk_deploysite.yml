@@ -4,17 +4,13 @@
   become: yes
   
   vars:
-    source    : ./mywebsite/index.html  
+    source    : ./mywebsite 
     destination : /var/www/html
     
   tasks:
   
   - block: #RH
-  
-      - name: Copy site to server`s directory
-        copy: src={{ source }} dest={{ destination }} mode=0555
-        notify: restart Apache RH
-    
+         
       - name: Start webServer service RedHat
         service: name=httpd state=started enabled=yes
     
@@ -22,20 +18,25 @@
     
     
   - block: #Deb
-  
-      - name: Copy site to server`s directory
-        copy: src={{ source }} dest={{ destination }} mode=0555
-        notify: restart Apache Deb
-    
+         
       - name: Start webServer service Debian
         service: name=httpd state=started enabled=yes
     
     when: ansible_os_family == "Debian"  
     
   
-  handlers:
+  - name: Copy site to server`s directory
+    copy: src={{ source }}/{{ item }} dest={{ destination }} mode=0555
+    with_fileglob: "{{ source }}/*.*" 
+    notify: 
+        - restart Apache Deb
+        - restart Apache RH
+   
+    handlers:
   - name: restart Apache RH
     service: name=httpd state=restarted
+    when: ansible_os_family == "RedHat"
        
   - name: restart Apache Deb
     service: name=apache2 state=restarted  
+    when: ansible_os_family == "Debian" 
