@@ -1,0 +1,11 @@
+---
+- name: Upload web page
+  hosts: STAGING_SERVERS_WEB
+  become: yes
+  
+
+  roles:
+     - { role: deploy_site, when: ansible_system == 'Linux' }  
+  
+   
+  
