@@ -1,0 +1,26 @@
+---
+- name: Upload php web page
+  hosts: all
+  become: yes
+  
+  vars:
+    source    : ./X5phpsite
+    destination : /var/www/html
+    
+  tasks:         
+
+    - name: Copy site to server
+      copy: src={{ item }} dest={{ destination }} mode=0555
+      with_fileglob: "{{ source }}/*.*" 
+      notify: 
+        - restart Apache Deb
+    
+    - name: Copy script to server
+      copy: src='./X5script' dest='/home/inspector' mode=0555
+      with_fileglob: "./X5script/*.*" 
+      
+   
+  handlers:  
+  - name: restart Apache Deb
+    service: name=apache2 state=restarted  
+    when: ansible_os_family == "Debian" 
