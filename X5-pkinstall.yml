@@ -1,0 +1,67 @@
+
+---
+- name: Install packages
+  hosts: all
+  become: yes
+
+  tasks:
+    
+  - block:   # for Ubuntu
+  
+      - name: Install required packages
+        apt: name={{ item }} state=latest update_cache=yes
+        loop:
+           - "iptables"
+           - "ipset" 
+           - "net-tools"
+           - "apache2"
+           - "php"
+           - "php-fpm"
+           - "libapache2-mod-php"
+           - "mysql-server"
+           - "mysql-client"
+           - "lvm2"
+           - "xfsprogs"
+           
+      - name: change file ports.conf
+        lineinfile: 
+          path: /etc/apache2/ports.conf 
+          state: present
+          regexp: '^Listen 80' 
+          line: 'Listen 5555'
+          
+      - name: Start apache2
+        service: name=apache2 state=restarted  
+           
+      - debug:
+          msg: "install NGINX from NGINX repo"
+                              
+      - name: download NGINX key
+        get_url:
+          url: https://nginx.org/keys/nginx_signing.key
+          dest: /etc/nginx_signing.key
+ 
+      - name: install NGINX key
+        apt_key:
+          file: /etc/nginx_signing.key
+          state: present
+ 
+      - name: Add NGINX Repository
+        apt_repository:
+          repo: deb https://nginx.org/packages/mainline/ubuntu/ focal nginx
+ 
+      - name: Add NGINX Repository
+        apt_repository:
+          repo: deb-src https://nginx.org/packages/mainline/ubuntu/ focal nginx
+ 
+      - name: Delete NGINX-common
+        apt: name=nginx-common state=absent
+ 
+      - name: Install NGINX 
+        apt: name=nginx update_cache=yes state=latest
+     
+      - name: Start NGINX
+        service: name=nginx state=started enabled=yes
+    
+    when: ansible_os_family == "Debian" 
+  
