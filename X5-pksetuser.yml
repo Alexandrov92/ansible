@@ -1,0 +1,51 @@
+
+---
+- name: add user and right settings 
+  hosts: all
+  become: yes
+  
+  tasks:
+
+     - name: add user "inspector"
+       user: 
+         name: inspector
+         password: '$6$x2lf3sEKu9yDtuve$tXA0NbBLrNT1CRzL0SeF8JTnsMtDPu13xWUBeok9p3dMvGrsV2k9fluI4BEpCSrCvPHvCKZLycAX7jwLoxwIy1'
+         groups: sudo
+         state: present
+         system: yes
+         shell: /bin/bash 
+         createhome: yes
+         home: /home/inspector
+     
+     - name: add ssh-keys
+       authorized_key: 
+            user: inspector
+            state: present 
+            key: "{{ lookup('file', '/home/alex/.ssh/my_new_key.pub') }}"    
+         
+     - name: change file sudoers.tmp
+       lineinfile: 
+          path: /etc/sudoers 
+          state: present
+          regexp: '^%?sudo	ALL=' 
+          line: '%sudo	ALL=(ALL) NOPASSWD: ALL'
+          validate: '/usr/sbin/visudo -cf %s' 
+     
+     - name:  gain root privileges alex 
+       lineinfile: 
+          path: /etc/sudoers 
+          state: present
+          line: '%alex	ALL=(ALL) ALL'
+          insertafter: gain root privileges.*
+          validate: '/usr/sbin/visudo -cf %s' 
+     
+     - name: gain root privileges inspector 
+       lineinfile: 
+          path: /etc/sudoers 
+          state: present
+          line: '%inspector	ALL=(ALL) ALL'
+          insertafter: gain root privileges.*
+          validate: '/usr/sbin/visudo -cf %s' 
+     
+     
+           
