@@ -1,0 +1,23 @@
+
+---
+- name: correct sshd
+  hosts: all
+  become: yes
+  
+  tasks:
+
+     - name: change PasswordAuthentication
+       lineinfile: dest=/etc/ssh/sshd_config regexp='^#?PasswordAuthentication' line='PasswordAuthentication no' 
+             
+     - name: change PubkeyAuthentication
+       lineinfile: dest=/etc/ssh/sshd_config regexp='^#?PubkeyAuthentication' line='PubkeyAuthentication yes' 
+     
+     - name: change PermitRootLogin
+       lineinfile: dest=/etc/ssh/sshd_config regexp='^#?PermitRootLogin' line='PermitRootLogin no'
+     
+     #- name: restart sshd
+     #  service:
+     #     name: sshd
+     #     state: restarted 
+  
+           
